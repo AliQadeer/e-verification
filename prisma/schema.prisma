@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id              String   @id @default(cuid())
+  certificateNo   String   @unique
+  referenceNo     String   @unique
+  name            String
+  idNo            String
+  company         String
+  issuanceNo      String
+  issuedDate      DateTime
+  validUntil      DateTime
+  type            String
+  model           String?
+  trainer         String?
+  location        String?
+  imageUrl        String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([referenceNo])
+  @@index([certificateNo])
+}

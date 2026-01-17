@@ -1,0 +1,112 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { trpc } from '@/lib/trpc/client';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import UserForm from '@/components/admin/UserForm';
+import UsersList from '@/components/admin/UsersList';
+
+export default function AdminDashboard() {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [editingUser, setEditingUser] = useState<any>(null);
+
+  useEffect(() => {
+    const admin = localStorage.getItem('admin');
+    if (!admin) {
+      router.push('/admin');
+    } else {
+      setIsAuthenticated(true);
+    }
+  }, [router]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('admin');
+    router.push('/admin');
+  };
+
+  const handleAddUser = () => {
+    setEditingUser(null);
+    setShowForm(true);
+  };
+
+  const handleEditUser = (user: any) => {
+    setEditingUser(user);
+    setShowForm(true);
+  };
+
+  const handleFormClose = () => {
+    setShowForm(false);
+    setEditingUser(null);
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+      <header className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <Image
+                src="/assets/logo.jpeg"
+                alt="e-Verification"
+                width={60}
+                height={60}
+                className="object-contain"
+              />
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
+                <p className="text-sm text-gray-600">Manage certificates and users</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <Button onClick={() => router.push('/')}>View Public Site</Button>
+              <Button onClick={handleLogout} variant="outline">
+                Logout
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {!showForm ? (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">All Users</h2>
+              <Button onClick={handleAddUser} size="lg">
+                Add New User
+              </Button>
+            </div>
+
+            <UsersList onEdit={handleEditUser} />
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {editingUser ? 'Edit User' : 'Add New User'}
+              </h2>
+              <Button onClick={handleFormClose} variant="outline">
+                Back to List
+              </Button>
+            </div>
+
+            <UserForm user={editingUser} onSuccess={handleFormClose} />
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
