@@ -14,8 +14,27 @@ import {
 } from '@/components/ui/dialog';
 import { useState } from 'react';
 
+interface User {
+  id: string;
+  certificateNo: string;
+  referenceNo: string;
+  name: string;
+  idNo: string;
+  company: string;
+  issuanceNo: string;
+  issuedDate: Date;
+  validUntil: Date;
+  type: string;
+  model?: string | null;
+  trainer?: string | null;
+  location?: string | null;
+  imageUrl: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 interface UsersListProps {
-  onEdit: (user: any) => void;
+  onEdit: (user: User) => void;
 }
 
 export default function UsersList({ onEdit }: UsersListProps) {
@@ -64,7 +83,7 @@ export default function UsersList({ onEdit }: UsersListProps) {
   return (
     <>
       <div className="grid gap-4">
-        {users.map((user) => (
+        {users.map((user: User) => (
           <Card key={user.id}>
             <CardContent className="pt-6">
               <div className="flex items-start gap-4">
