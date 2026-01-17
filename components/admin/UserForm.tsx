@@ -8,8 +8,27 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
 
+interface User {
+  id: string;
+  certificateNo: string;
+  referenceNo: string;
+  name: string;
+  idNo: string;
+  company: string;
+  issuanceNo: string;
+  issuedDate: Date;
+  validUntil: Date;
+  type: string;
+  model?: string | null;
+  trainer?: string | null;
+  location?: string | null;
+  imageUrl: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 interface UserFormProps {
-  user?: any;
+  user?: User | null;
   onSuccess: () => void;
 }
 

@@ -3,24 +3,44 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { trpc } from '@/lib/trpc/client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import UserForm from '@/components/admin/UserForm';
 import UsersList from '@/components/admin/UsersList';
 
+interface User {
+  id: string;
+  certificateNo: string;
+  referenceNo: string;
+  name: string;
+  idNo: string;
+  company: string;
+  issuanceNo: string;
+  issuedDate: Date;
+  validUntil: Date;
+  type: string;
+  model?: string | null;
+  trainer?: string | null;
+  location?: string | null;
+  imageUrl: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export default function AdminDashboard() {
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return !!localStorage.getItem('admin');
+    }
+    return false;
+  });
   const [showForm, setShowForm] = useState(false);
-  const [editingUser, setEditingUser] = useState<any>(null);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
 
   useEffect(() => {
     const admin = localStorage.getItem('admin');
     if (!admin) {
       router.push('/admin');
-    } else {
-      setIsAuthenticated(true);
     }
   }, [router]);
 
@@ -34,7 +54,7 @@ export default function AdminDashboard() {
     setShowForm(true);
   };
 
-  const handleEditUser = (user: any) => {
+  const handleEditUser = (user: User) => {
     setEditingUser(user);
     setShowForm(true);
   };
