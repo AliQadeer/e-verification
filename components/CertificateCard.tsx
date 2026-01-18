@@ -58,7 +58,9 @@ export default function CertificateCard({ user }: CertificateCardProps) {
     setIsGenerating(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Wait for images to load
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       const cardWidth = 85.6; // CNIC standard width in mm
       const cardHeight = 53.98; // CNIC standard height in mm
 
@@ -68,35 +70,52 @@ export default function CertificateCard({ user }: CertificateCardProps) {
         format: [cardWidth, cardHeight],
       });
 
+      // Capture front card
       const frontCanvas = await html2canvas(frontCardRef.current, {
-        scale: 2,
+        scale: 3,
         logging: false,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
+        imageTimeout: 0,
+        onclone: (clonedDoc) => {
+          const clonedElement = clonedDoc.querySelector('[data-card="front"]');
+          if (clonedElement instanceof HTMLElement) {
+            clonedElement.style.transform = 'scale(1)';
+          }
+        }
       });
 
-      const frontImgData = frontCanvas.toDataURL('image/jpeg', 0.95);
-      pdf.addImage(frontImgData, 'JPEG', 0, 0, cardWidth, cardHeight);
+      const frontImgData = frontCanvas.toDataURL('image/png', 1.0);
+      pdf.addImage(frontImgData, 'PNG', 0, 0, cardWidth, cardHeight);
 
+      // Add new page for back
       pdf.addPage([cardWidth, cardHeight], 'landscape');
 
+      // Capture back card
       const backCanvas = await html2canvas(backCardRef.current, {
-        scale: 2,
+        scale: 3,
         logging: false,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
+        imageTimeout: 0,
+        onclone: (clonedDoc) => {
+          const clonedElement = clonedDoc.querySelector('[data-card="back"]');
+          if (clonedElement instanceof HTMLElement) {
+            clonedElement.style.transform = 'scale(1)';
+          }
+        }
       });
 
-      const backImgData = backCanvas.toDataURL('image/jpeg', 0.95);
-      pdf.addImage(backImgData, 'JPEG', 0, 0, cardWidth, cardHeight);
+      const backImgData = backCanvas.toDataURL('image/png', 1.0);
+      pdf.addImage(backImgData, 'PNG', 0, 0, cardWidth, cardHeight);
 
       const fileName = `Certificate_${user.certificateNo}_${user.name.replace(/\s+/g, '_')}.pdf`;
       pdf.save(fileName);
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert(`Failed to generate PDF. Please try again.`);
+      alert('Failed to generate PDF. Please try again.');
     } finally {
       setIsGenerating(false);
     }
@@ -110,6 +129,7 @@ export default function CertificateCard({ user }: CertificateCardProps) {
         <div className="flex justify-center">
           <div
             ref={frontCardRef}
+            data-card="front"
             className="relative bg-white"
             style={{
               width: '1012.5px',
@@ -118,7 +138,7 @@ export default function CertificateCard({ user }: CertificateCardProps) {
             }}
           >
             {/* Watermark - Large centered circle logo */}
-            <div className="absolute inset-0 flex items-center justify-center opacity-[0.15] pointer-events-none">
+            <div className="absolute inset-0 flex items-center justify-center opacity-[0.25] pointer-events-none">
               <Image
                 src="/assets/logo.jpeg"
                 alt="Watermark"
@@ -231,6 +251,7 @@ export default function CertificateCard({ user }: CertificateCardProps) {
         <div className="flex justify-center">
           <div
             ref={backCardRef}
+            data-card="back"
             className="relative bg-white"
             style={{
               width: '1012.5px',
@@ -238,82 +259,75 @@ export default function CertificateCard({ user }: CertificateCardProps) {
               fontFamily: 'Arial, sans-serif'
             }}
           >
+
             {/* Content */}
-            <div className="relative h-full flex" style={{ padding: '42px 37px 29px 37px' }}>
+            <div className="relative h-full flex" style={{ padding: '45px 30px 50px 30px' }}>
               {/* Left - QR Code */}
               <div style={{
                 width: '50%',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'flex-start',
-                paddingRight: '29px'
+                justifyContent: 'center',
+                paddingRight: '25px'
               }}>
                 {qrCodeUrl && (
-                  <div style={{ marginBottom: '18px' }}>
+                  <div>
                     <Image
                       src={qrCodeUrl}
                       alt="QR Code"
-                      width={415}
-                      height={415}
+                      width={420}
+                      height={420}
                     />
                   </div>
                 )}
-                <div style={{
-                  fontSize: '14px',
-                  color: '#dc2626',
-                  fontWeight: 'bold',
-                  textAlign: 'center',
-                  lineHeight: '1.3'
-                }}>
-                  Scan QR code to verify this certificate at <span style={{ textDecoration: 'underline' }}>https://e-certificates.bureauveritas.com</span>
-                </div>
               </div>
 
               {/* Right - Details */}
               <div style={{
                 width: '50%',
-                paddingLeft: '29px',
+                paddingLeft: '25px',
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'space-between'
+                justifyContent: 'space-around',
+                margin: '50px 0px'
               }}>
                 {/* Top Details */}
                 <div>
                   <div style={{ marginBottom: '15px' }}>
-                    <div style={{ fontSize: '15px', fontWeight: '600', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '14px', marginBottom: '3px' }}>
                       CERTIFICATE NO.:
                     </div>
-                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#3b4a9d' }}>
+                    <div style={{ fontSize: '22px', fontWeight: 'bold', color: '#3b4a9d' }}>
                       {user.certificateNo}
                     </div>
                   </div>
 
-                  <div style={{ marginBottom: '12px' }}>
-                    <div style={{ fontSize: '18px', fontWeight: 'bold' }}>
+                  <div style={{ marginBottom: '10px' }}>
+                    <div style={{ fontSize: '16px' }}>
                       TYPE: {user.type}
                     </div>
                   </div>
 
                   {user.model && (
-                    <div style={{ marginBottom: '12px' }}>
-                      <div style={{ fontSize: '18px', fontWeight: 'bold' }}>
+                    <div style={{ marginBottom: '10px' }}>
+                      <div style={{ fontSize: '16px' }}>
                         MODEL: {user.model}
                       </div>
                     </div>
                   )}
 
                   {user.trainer && (
-                    <div style={{ marginBottom: '12px' }}>
-                      <div style={{ fontSize: '18px', fontWeight: 'bold' }}>
+                    <div style={{ marginBottom: '10px' }}>
+                      <div style={{ fontSize: '16px' }}>
                         TRAINER: {user.trainer}
                       </div>
                     </div>
                   )}
 
                   {user.location && (
-                    <div style={{ marginBottom: '12px' }}>
-                      <div style={{ fontSize: '18px', fontWeight: 'bold' }}>
+                    <div style={{ marginBottom: '10px' }}>
+                      <div style={{ fontSize: '16px' }}>
                         LOCATION: {user.location}
                       </div>
                     </div>
@@ -322,20 +336,35 @@ export default function CertificateCard({ user }: CertificateCardProps) {
 
                 {/* Bottom Disclaimer */}
                 <div style={{
-                  fontSize: '13px',
-                  lineHeight: '1.35',
-                  marginTop: '24px'
+                  fontSize: '14px',
+                  lineHeight: '1.4',
+                  marginTop: '20px',
+                  marginBottom: '15px'
                 }}>
                   This card does not relieve the operator from responsibilities related to the safe handling, operation, or reliability of the listed equipment.Only contracted parties can hold Bureau Veritas liable for errors/omissions related to this card. Bureau Veritas is not liable for any mistakes, negligence, judgement or fault committed by the person holding this card. The SAG license is the client&apos;s responsibility.
                 </div>
               </div>
+            </div>
+
+            {/* Bottom Red Text */}
+            <div style={{
+              position: 'absolute',
+              bottom: '8px',
+              left: '30px',
+              right: '30px',
+              fontSize: '16px',
+              color: '#dc2626',
+              fontWeight: 'bold',
+              textAlign: 'center'
+            }}>
+              Scan QR code to verify this certificate at <span style={{ textDecoration: 'underline' }}>https://e-certificates.bureauveritas.com</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Download Button */}
-      <div className="flex justify-center gap-4">
+      {/* <div className="flex justify-center gap-4">
         <Button
           onClick={downloadPDF}
           disabled={isGenerating || !qrCodeUrl}
@@ -359,7 +388,7 @@ export default function CertificateCard({ user }: CertificateCardProps) {
             </>
           )}
         </Button>
-      </div>
+      </div> */}
     </div>
   );
 }
