@@ -21,8 +21,8 @@ export default function VerifyPage({ params }: { params: Promise<{ certificateNo
 
   return (
     <div className="min-h-screen relative">
-      {/* Background - desktop only */}
-      <div className="hidden md:block fixed inset-0 z-0">
+      {/* Background - both mobile and desktop */}
+      <div className="fixed inset-0 z-0">
         <Image
           src="/assets/background_industry.jpg"
           alt="Background"
@@ -30,11 +30,8 @@ export default function VerifyPage({ params }: { params: Promise<{ certificateNo
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-black/30"></div>
+        <div className="absolute inset-0 bg-black/30 md:bg-black/30"></div>
       </div>
-
-      {/* Mobile background */}
-      <div className="md:hidden fixed inset-0 z-0 bg-gray-100"></div>
 
       {/* Header */}
       <header className="relative z-10 bg-[#0033A0] text-white py-4 md:py-6">
@@ -59,14 +56,14 @@ export default function VerifyPage({ params }: { params: Promise<{ certificateNo
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-12">
+      <main className="relative z-10 max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-6 md:py-12 pb-8 md:pb-12">
         {isLoading ? (
-          <div className="bg-white rounded-lg shadow-lg p-12 text-center">
+          <div className="bg-white rounded-lg shadow-lg p-12 text-center mx-2 md:mx-0">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#0033A0]"></div>
             <p className="mt-4 text-gray-600">Verifying certificate...</p>
           </div>
         ) : error || !user ? (
-          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="bg-white rounded-lg shadow-lg p-8 text-center mx-2 md:mx-0">
             <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
                 className="w-10 h-10 text-red-600"
@@ -90,7 +87,7 @@ export default function VerifyPage({ params }: { params: Promise<{ certificateNo
         ) : (
           <>
             {/* Status Icon */}
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-6 mx-2 md:mx-0">
               <div className="w-16 h-16 md:w-20 md:h-20 bg-[#9ACD32] rounded-full flex items-center justify-center border-4 border-white shadow-lg">
                 <svg
                   className="w-8 h-8 md:w-10 md:h-10 text-white"
@@ -107,7 +104,7 @@ export default function VerifyPage({ params }: { params: Promise<{ certificateNo
             </div>
 
             {/* Details Card */}
-            <div className="bg-white rounded-lg shadow-xl overflow-hidden">
+            <div className="bg-white rounded-lg shadow-xl overflow-hidden mx-2 md:mx-0">
               <div className="p-6 md:p-8 space-y-3">
                 {/* Deliverable Id */}
                 <div className="flex flex-col md:flex-row md:items-center border-b border-gray-200 pb-3">
@@ -191,7 +188,7 @@ export default function VerifyPage({ params }: { params: Promise<{ certificateNo
             </div>
 
             {/* Visit Bureau Veritas */}
-            <div className="mt-6 text-center">
+            <div className="mt-6 text-center mx-2 md:mx-0">
               <a
                 href="https://www.bureauveritas.com"
                 target="_blank"
