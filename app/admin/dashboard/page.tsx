@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import UserForm from '@/components/admin/UserForm';
 import UsersList from '@/components/admin/UsersList';
+import CertificateCard from '@/components/CertificateCard';
 
 interface User {
   id: string;
@@ -36,6 +37,7 @@ export default function AdminDashboard() {
   });
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [viewingCard, setViewingCard] = useState<User | null>(null);
 
   useEffect(() => {
     const admin = localStorage.getItem('admin');
@@ -51,17 +53,29 @@ export default function AdminDashboard() {
 
   const handleAddUser = () => {
     setEditingUser(null);
+    setViewingCard(null);
     setShowForm(true);
   };
 
   const handleEditUser = (user: User) => {
     setEditingUser(user);
+    setViewingCard(null);
     setShowForm(true);
+  };
+
+  const handleViewCard = (user: User) => {
+    setViewingCard(user);
+    setShowForm(false);
+    setEditingUser(null);
   };
 
   const handleFormClose = () => {
     setShowForm(false);
     setEditingUser(null);
+  };
+
+  const handleCardClose = () => {
+    setViewingCard(null);
   };
 
   if (!isAuthenticated) {
@@ -91,7 +105,6 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <Button onClick={() => router.push('/')}>View Public Site</Button>
               <Button onClick={handleLogout} variant="outline">
                 Logout
               </Button>
@@ -101,7 +114,20 @@ export default function AdminDashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {!showForm ? (
+        {viewingCard ? (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Certificate Card - {viewingCard.name}
+              </h2>
+              <Button onClick={handleCardClose} variant="outline">
+                Back to List
+              </Button>
+            </div>
+
+            <CertificateCard user={viewingCard} />
+          </div>
+        ) : !showForm ? (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900">All Users</h2>
@@ -110,7 +136,7 @@ export default function AdminDashboard() {
               </Button>
             </div>
 
-            <UsersList onEdit={handleEditUser} />
+            <UsersList onEdit={handleEditUser} onViewCard={handleViewCard} />
           </div>
         ) : (
           <div className="space-y-6">

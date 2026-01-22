@@ -35,9 +35,10 @@ interface User {
 
 interface UsersListProps {
   onEdit: (user: User) => void;
+  onViewCard: (user: User) => void;
 }
 
-export default function UsersList({ onEdit }: UsersListProps) {
+export default function UsersList({ onEdit, onViewCard }: UsersListProps) {
   const { data: users, isLoading } = trpc.user.getAll.useQuery();
   const [deleteDialog, setDeleteDialog] = useState<string | null>(null);
   const utils = trpc.useUtils();
@@ -142,6 +143,13 @@ export default function UsersList({ onEdit }: UsersListProps) {
 
                 {/* Actions */}
                 <div className="flex flex-col gap-2 flex-shrink-0">
+                  <Button
+                    onClick={() => onViewCard(user)}
+                    variant="default"
+                    size="sm"
+                  >
+                    View Card
+                  </Button>
                   <Button
                     onClick={() => onEdit(user)}
                     variant="outline"

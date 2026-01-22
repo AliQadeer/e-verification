@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import QRCode from 'qrcode';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 interface User {
   id: string;
@@ -53,16 +52,215 @@ export default function CertificateCard({ user }: CertificateCardProps) {
     });
   };
 
+  const loadImage = (src: string): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
+      const img = new window.Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+  };
+
+  const drawFrontCard = async (canvas: HTMLCanvasElement, logo: HTMLImageElement, photo: HTMLImageElement) => {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas context not available');
+
+    const width = 1012.5;
+    const height = 637.5;
+    canvas.width = width;
+    canvas.height = height;
+
+    // White background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+
+    // Watermark - centered logo with opacity
+    ctx.globalAlpha = 0.25;
+    ctx.drawImage(logo, (width - 525) / 2, (height - 525) / 2, 525, 525);
+    ctx.globalAlpha = 1.0;
+
+    // Top left logo
+    ctx.drawImage(logo, 37, 24, 120, 120);
+
+    // Certificate No text
+    ctx.fillStyle = '#000000';
+    ctx.font = 'bold 26px Arial';
+    ctx.fillText('Certificate No:', 186, 50);
+
+    // Certificate number (blue)
+    ctx.fillStyle = '#3b4a9d';
+    ctx.font = 'bold 34px Arial';
+    ctx.fillText(user.certificateNo, 186, 95);
+
+    // Reference details
+    ctx.fillStyle = '#000000';
+    ctx.font = '18px Arial';
+    ctx.fillText(`Ref.# ${user.referenceNo}`, 186, 125);
+    ctx.fillText(`Issued on: ${formatDate(user.issuedDate)}`, 186, 150);
+    ctx.fillText(`Valid until: ${formatDate(user.validUntil)}`, 186, 170);
+
+    // User photo (top right)
+    ctx.drawImage(photo, width - 197, 24, 160, 197);
+
+    // Top border
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(37, 239, width - 74, 3);
+
+    // Name section
+    ctx.fillStyle = '#000000';
+    ctx.font = 'bold 28px Arial';
+    ctx.fillText('Name:', 37, 275);
+    ctx.fillStyle = '#3b4a9d';
+    ctx.fillText(user.name.toUpperCase(), 145, 275);
+
+    // ID No
+    ctx.fillStyle = '#000000';
+    ctx.font = 'bold 24px Arial';
+    ctx.fillText(`ID No: ${user.idNo}`, 37, 310);
+
+    // Company
+    ctx.fillText(`Company: ${user.company}`, 37, 340);
+
+    // Issuance No
+    ctx.fillText(`Issuance No.: ${user.issuanceNo}`, 37, 370);
+
+    // Bottom border
+    ctx.fillRect(37, 387, width - 74, 3);
+
+    // Certificate completion text (centered)
+    ctx.font = 'bold 17px Arial';
+    const certText = 'This certifies that the above mentioned person has successfully completed the BV Safety Course. Refer to backside for details.';
+    ctx.fillText(certText, width / 2 - ctx.measureText(certText).width / 2, 420);
+
+    // Bottom border for cert text
+    ctx.fillRect(37, 430, width - 74, 3);
+
+    // Contact info (centered)
+    ctx.font = '16px Arial';
+    const contact1 = 'For any queries: Tel. 00966 13 99439017';
+    const contact2 = 'abdullah.shehri@bureauveritas.com';
+    ctx.fillText(contact1, width / 2 - ctx.measureText(contact1).width / 2, 465);
+    ctx.fillText(contact2, width / 2 - ctx.measureText(contact2).width / 2, 490);
+  };
+
+  const drawBackCard = async (canvas: HTMLCanvasElement, qrImage: HTMLImageElement) => {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas context not available');
+
+    const width = 1012.5;
+    const height = 637.5;
+    canvas.width = width;
+    canvas.height = height;
+
+    // White background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+
+    // QR Code on left side
+    const qrSize = 420;
+    const qrX = (width / 2 - qrSize) / 2;
+    const qrY = (height - qrSize) / 2;
+    ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
+
+    // Right side content
+    const rightX = width / 2 + 25;
+    let currentY = 120;
+
+    // Certificate No
+    ctx.fillStyle = '#000000';
+    ctx.font = '14px Arial';
+    ctx.fillText('CERTIFICATE NO.:', rightX, currentY);
+    currentY += 25;
+
+    ctx.fillStyle = '#3b4a9d';
+    ctx.font = 'bold 22px Arial';
+    ctx.fillText(user.certificateNo, rightX, currentY);
+    currentY += 40;
+
+    // Type
+    ctx.fillStyle = '#000000';
+    ctx.font = '16px Arial';
+    ctx.fillText(`TYPE: ${user.type}`, rightX, currentY);
+    currentY += 30;
+
+    // Model (if exists)
+    if (user.model) {
+      ctx.fillText(`MODEL: ${user.model}`, rightX, currentY);
+      currentY += 30;
+    }
+
+    // Trainer (if exists)
+    if (user.trainer) {
+      ctx.fillText(`TRAINER: ${user.trainer}`, rightX, currentY);
+      currentY += 30;
+    }
+
+    // Location (if exists)
+    if (user.location) {
+      ctx.fillText(`LOCATION: ${user.location}`, rightX, currentY);
+      currentY += 30;
+    }
+
+    // Disclaimer text
+    currentY += 30;
+    ctx.font = '14px Arial';
+    const disclaimerLines = [
+      'This card does not relieve the operator from responsibilities related to the safe handling,',
+      'operation, or reliability of the listed equipment.Only contracted parties can hold Bureau',
+      'Veritas liable for errors/omissions related to this card. Bureau Veritas is not liable for any',
+      'mistakes, negligence, judgement or fault committed by the person holding this card.',
+      'The SAG license is the client\'s responsibility.'
+    ];
+
+    disclaimerLines.forEach(line => {
+      ctx.fillText(line, rightX, currentY);
+      currentY += 20;
+    });
+
+    // Bottom red text
+    ctx.fillStyle = '#dc2626';
+    ctx.font = 'bold 16px Arial';
+    const bottomText1 = 'Scan QR code to verify this certificate at';
+    const bottomText2 = 'https://e-certificates.bureauveritas.com';
+    const bottomY = height - 20;
+
+    const text1Width = ctx.measureText(bottomText1).width;
+    const text2Width = ctx.measureText(bottomText2).width;
+    const totalWidth = text1Width + 5 + text2Width;
+
+    ctx.fillText(bottomText1, width / 2 - totalWidth / 2, bottomY);
+
+    // Underline the URL
+    const urlX = width / 2 - totalWidth / 2 + text1Width + 5;
+    ctx.fillText(bottomText2, urlX, bottomY);
+    ctx.fillRect(urlX, bottomY + 2, text2Width, 1);
+  };
+
   const downloadPDF = async () => {
-    if (!frontCardRef.current || !backCardRef.current) return;
     setIsGenerating(true);
 
     try {
-      // Wait for images to load
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('Loading images...');
+      const [logoImg, photoImg, qrImg] = await Promise.all([
+        loadImage('/assets/logo.jpeg'),
+        loadImage(user.imageUrl),
+        qrCodeUrl ? loadImage(qrCodeUrl) : Promise.reject('QR code not available')
+      ]);
 
-      const cardWidth = 85.6; // CNIC standard width in mm
-      const cardHeight = 53.98; // CNIC standard height in mm
+      console.log('Creating canvases...');
+      const frontCanvas = document.createElement('canvas');
+      const backCanvas = document.createElement('canvas');
+
+      console.log('Drawing front card...');
+      await drawFrontCard(frontCanvas, logoImg, photoImg);
+
+      console.log('Drawing back card...');
+      await drawBackCard(backCanvas, qrImg);
+
+      console.log('Generating PDF...');
+      const cardWidth = 85.6; // mm
+      const cardHeight = 53.98; // mm
 
       const pdf = new jsPDF({
         orientation: 'landscape',
@@ -70,52 +268,22 @@ export default function CertificateCard({ user }: CertificateCardProps) {
         format: [cardWidth, cardHeight],
       });
 
-      // Capture front card
-      const frontCanvas = await html2canvas(frontCardRef.current, {
-        scale: 3,
-        logging: false,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        imageTimeout: 0,
-        onclone: (clonedDoc) => {
-          const clonedElement = clonedDoc.querySelector('[data-card="front"]');
-          if (clonedElement instanceof HTMLElement) {
-            clonedElement.style.transform = 'scale(1)';
-          }
-        }
-      });
+      // Add front card
+      const frontImgData = frontCanvas.toDataURL('image/jpeg', 0.95);
+      pdf.addImage(frontImgData, 'JPEG', 0, 0, cardWidth, cardHeight);
 
-      const frontImgData = frontCanvas.toDataURL('image/png', 1.0);
-      pdf.addImage(frontImgData, 'PNG', 0, 0, cardWidth, cardHeight);
-
-      // Add new page for back
+      // Add back card
       pdf.addPage([cardWidth, cardHeight], 'landscape');
-
-      // Capture back card
-      const backCanvas = await html2canvas(backCardRef.current, {
-        scale: 3,
-        logging: false,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        imageTimeout: 0,
-        onclone: (clonedDoc) => {
-          const clonedElement = clonedDoc.querySelector('[data-card="back"]');
-          if (clonedElement instanceof HTMLElement) {
-            clonedElement.style.transform = 'scale(1)';
-          }
-        }
-      });
-
-      const backImgData = backCanvas.toDataURL('image/png', 1.0);
-      pdf.addImage(backImgData, 'PNG', 0, 0, cardWidth, cardHeight);
+      const backImgData = backCanvas.toDataURL('image/jpeg', 0.95);
+      pdf.addImage(backImgData, 'JPEG', 0, 0, cardWidth, cardHeight);
 
       const fileName = `Certificate_${user.certificateNo}_${user.name.replace(/\s+/g, '_')}.pdf`;
+      console.log('Saving PDF...');
       pdf.save(fileName);
+      console.log('PDF saved successfully!');
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
+      alert(`Failed to generate PDF: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
     } finally {
       setIsGenerating(false);
     }
@@ -364,7 +532,7 @@ export default function CertificateCard({ user }: CertificateCardProps) {
       </div>
 
       {/* Download Button */}
-      {/* <div className="flex justify-center gap-4">
+      <div className="flex justify-center gap-4">
         <Button
           onClick={downloadPDF}
           disabled={isGenerating || !qrCodeUrl}
@@ -388,7 +556,7 @@ export default function CertificateCard({ user }: CertificateCardProps) {
             </>
           )}
         </Button>
-      </div> */}
+      </div>
     </div>
   );
 }

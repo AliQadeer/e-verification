@@ -2,10 +2,8 @@
 
 import { use } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+
 import { trpc } from '@/lib/trpc/client';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function VerifyPage({ params }: { params: Promise<{ certificateNo: string }> }) {
   const resolvedParams = use(params);
@@ -22,179 +20,188 @@ export default function VerifyPage({ params }: { params: Promise<{ certificateNo
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div className="min-h-screen relative">
+      {/* Background - desktop only */}
+      <div className="hidden md:block fixed inset-0 z-0">
+        <Image
+          src="/assets/background_industry.jpg"
+          alt="Background"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-black/30"></div>
+      </div>
+
+      {/* Mobile background */}
+      <div className="md:hidden fixed inset-0 z-0 bg-gray-100"></div>
+
+      {/* Header */}
+      <header className="relative z-10 bg-[#0033A0] text-white py-4 md:py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <Image
-              src="/assets/logo.jpeg"
-              alt="e-Verification"
-              width={80}
-              height={80}
+              src="/assets/fingerprint.png"
+              alt="Fingerprint"
+              width={60}
+              height={60}
               className="object-contain"
             />
             <div>
-              <h1 className="text-xl font-bold text-gray-900">e-Verification</h1>
-              <p className="text-sm text-gray-600">Certificate Verification</p>
+              <h1 className="text-xl md:text-2xl font-bold">Authenticate your document</h1>
+              <p className="text-xs md:text-sm mt-1 opacity-90">
+                Thank you for submitting your document for verification.
+                <br className="hidden md:block" /> Please find below the answer to your request.
+              </p>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Main Content */}
+      <main className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-12">
         {isLoading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="bg-white rounded-lg shadow-lg p-12 text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#0033A0]"></div>
             <p className="mt-4 text-gray-600">Verifying certificate...</p>
           </div>
         ) : error || !user ? (
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg
-                    className="w-8 h-8 text-red-600"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                </div>
-                <h2 className="text-2xl font-bold text-red-900 mb-2">
-                  Certificate Not Found
-                </h2>
-                <p className="text-red-700 mb-6">
-                  User data does not exist in our records. Please verify the certificate number.
-                </p>
-                <Link href="/">
-                  <Button>Go to Home</Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg
+                className="w-10 h-10 text-red-600"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-red-900 mb-2">
+              Certificate Not Found
+            </h2>
+            <p className="text-red-700">
+              User data does not exist in our records. Please verify the certificate number.
+            </p>
+          </div>
         ) : (
-          <Card className="border-green-200 bg-white">
-            <CardHeader className="bg-green-50 border-b border-green-200">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-green-600"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path d="M5 13l4 4L19 7"></path>
-                  </svg>
-                </div>
-                <div>
-                  <CardTitle className="text-green-900">Certificate Verified</CardTitle>
-                  <p className="text-sm text-green-700 mt-1">
-                    This certificate is valid and authorized
-                  </p>
-                </div>
+          <>
+            {/* Status Icon */}
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-[#9ACD32] rounded-full flex items-center justify-center border-4 border-white shadow-lg">
+                <svg
+                  className="w-8 h-8 md:w-10 md:h-10 text-white"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="3"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M5 13l4 4L19 7"></path>
+                </svg>
               </div>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* User Photo */}
-                <div className="flex justify-center md:justify-start">
-                  <div className="w-48 h-56 relative border-4 border-gray-300 rounded-lg overflow-hidden shadow-lg">
-                    <Image
-                      src={user.imageUrl}
-                      alt={user.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
+            </div>
+
+            {/* Details Card */}
+            <div className="bg-white rounded-lg shadow-xl overflow-hidden">
+              <div className="p-6 md:p-8 space-y-3">
+                {/* Deliverable Id */}
+                <div className="flex flex-col md:flex-row md:items-center border-b border-gray-200 pb-3">
+                  <div className="font-bold text-sm md:text-base w-full md:w-48">Deliverable Id :</div>
+                  <div className="text-sm md:text-base mt-1 md:mt-0">{user.certificateNo}</div>
                 </div>
 
-                {/* User Details */}
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-600 mb-1">Certificate Number</h3>
-                    <p className="text-lg font-bold text-blue-700">{user.certificateNo}</p>
-                  </div>
+                {/* Published on */}
+                <div className="flex flex-col md:flex-row md:items-center border-b border-gray-200 pb-3">
+                  <div className="font-bold text-sm md:text-base w-full md:w-48">Published on :</div>
+                  <div className="text-sm md:text-base mt-1 md:mt-0">{formatDate(user.issuedDate)}</div>
+                </div>
 
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-600 mb-1">Reference Number</h3>
-                    <p className="text-lg font-bold text-gray-900">{user.referenceNo}</p>
-                  </div>
+                {/* QR Code Status */}
+                <div className="flex flex-col md:flex-row md:items-center border-b border-gray-200 pb-3">
+                  <div className="font-bold text-sm md:text-base w-full md:w-48">QR Code Status :</div>
+                  <div className="text-sm md:text-base mt-1 md:mt-0 text-green-600 font-semibold">VALIDATED</div>
+                </div>
 
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-600 mb-1">Name</h3>
-                    <p className="text-lg font-bold text-gray-900">{user.name}</p>
-                  </div>
+                {/* NAME */}
+                <div className="flex flex-col md:flex-row md:items-center border-b border-gray-200 pb-3">
+                  <div className="font-bold text-sm md:text-base w-full md:w-48">NAME :</div>
+                  <div className="text-sm md:text-base mt-1 md:mt-0 uppercase">{user.name}</div>
+                </div>
 
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-600 mb-1">ID Number</h3>
-                    <p className="text-lg text-gray-900">{user.idNo}</p>
-                  </div>
+                {/* ID */}
+                <div className="flex flex-col md:flex-row md:items-center border-b border-gray-200 pb-3">
+                  <div className="font-bold text-sm md:text-base w-full md:w-48">ID :</div>
+                  <div className="text-sm md:text-base mt-1 md:mt-0">{user.idNo}</div>
+                </div>
 
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-600 mb-1">Company</h3>
-                    <p className="text-lg text-gray-900">{user.company}</p>
-                  </div>
+                {/* ISSUED ON */}
+                <div className="flex flex-col md:flex-row md:items-center border-b border-gray-200 pb-3">
+                  <div className="font-bold text-sm md:text-base w-full md:w-48">ISSUED ON :</div>
+                  <div className="text-sm md:text-base mt-1 md:mt-0">{formatDate(user.issuedDate)}</div>
+                </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-600 mb-1">Issued Date</h3>
-                      <p className="text-gray-900">{formatDate(user.issuedDate)}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-600 mb-1">Valid Until</h3>
-                      <p className="text-gray-900">{formatDate(user.validUntil)}</p>
-                    </div>
-                  </div>
+                {/* VALID UNTIL */}
+                <div className="flex flex-col md:flex-row md:items-center border-b border-gray-200 pb-3">
+                  <div className="font-bold text-sm md:text-base w-full md:w-48">VALID UNTIL :</div>
+                  <div className="text-sm md:text-base mt-1 md:mt-0">{formatDate(user.validUntil)}</div>
+                </div>
 
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-600 mb-1">Type</h3>
-                    <p className="text-gray-900">{user.type}</p>
-                  </div>
+                {/* TYPE */}
+                <div className="flex flex-col md:flex-row md:items-center border-b border-gray-200 pb-3">
+                  <div className="font-bold text-sm md:text-base w-full md:w-48">TYPE :</div>
+                  <div className="text-sm md:text-base mt-1 md:mt-0 uppercase">{user.type}</div>
+                </div>
 
-                  {user.model && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-600 mb-1">Model</h3>
-                      <p className="text-gray-900">{user.model}</p>
-                    </div>
-                  )}
+                {/* MODEL */}
+                <div className="flex flex-col md:flex-row md:items-center border-b border-gray-200 pb-3">
+                  <div className="font-bold text-sm md:text-base w-full md:w-48">MODEL :</div>
+                  <div className="text-sm md:text-base mt-1 md:mt-0 uppercase">{user.model || 'N/A'}</div>
+                </div>
 
-                  {user.trainer && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-600 mb-1">Trainer</h3>
-                      <p className="text-gray-900">{user.trainer}</p>
-                    </div>
-                  )}
+                {/* COMPANY */}
+                <div className="flex flex-col md:flex-row md:items-center border-b border-gray-200 pb-3">
+                  <div className="font-bold text-sm md:text-base w-full md:w-48">COMPANY :</div>
+                  <div className="text-sm md:text-base mt-1 md:mt-0 uppercase">{user.company}</div>
+                </div>
 
-                  {user.location && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-600 mb-1">Location</h3>
-                      <p className="text-gray-900">{user.location}</p>
-                    </div>
-                  )}
+                {/* TRAINING LOCATION */}
+                <div className="flex flex-col md:flex-row md:items-center border-b border-gray-200 pb-3">
+                  <div className="font-bold text-sm md:text-base w-full md:w-48">TRAINING LOCATION :</div>
+                  <div className="text-sm md:text-base mt-1 md:mt-0 uppercase">{user.location || 'N/A'}</div>
+                </div>
+
+                {/* TRAINER */}
+                <div className="flex flex-col md:flex-row md:items-center pb-3">
+                  <div className="font-bold text-sm md:text-base w-full md:w-48">TRAINER :</div>
+                  <div className="text-sm md:text-base mt-1 md:mt-0 uppercase">{user.trainer || 'N/A'}</div>
                 </div>
               </div>
 
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <p className="text-sm text-gray-600 text-center">
-                  This certificate has been verified and is valid. For any queries, please contact:<br />
-                  Tel. 00966 13 99439017 | abdullah.shehri@bureauveritas.com
+              {/* Footer */}
+              <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                <p className="text-xs md:text-sm text-gray-700 text-center">
+                  For any further information on this document, please contact the issuer of the document.
                 </p>
               </div>
+            </div>
 
-              <div className="mt-6 text-center">
-                <Link href="/">
-                  <Button>Verify Another Certificate</Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Visit Bureau Veritas */}
+            <div className="mt-6 text-center">
+              <a
+                href="https://www.bureauveritas.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-white md:text-gray-600 hover:underline"
+              >
+                Visit <span className="font-semibold">Bureau Veritas Website</span>
+              </a>
+            </div>
+          </>
         )}
       </main>
     </div>
